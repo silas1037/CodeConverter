@@ -3,6 +3,7 @@ using System.Linq;
 
 namespace WinFormsApp
 {
+
     public static class FileManager
     {
         /* 将文件读取为字节流 */
@@ -18,9 +19,12 @@ namespace WinFormsApp
         /* 利用字节流创建或写入新文件 */
         public static void ByteStreamToFile(string filePath, byte[] fileBytes)
         {
+
+
             var fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write); // 以写权限打开或新建文件
             fileStream.Write(fileBytes, 0, fileBytes.Length); // 将字节流写入文件
             fileStream.Close(); // 关闭文件流
+
         }
 
         /* 判断产生该字节流的文件是否是文本文件 */

@@ -99,12 +99,40 @@ namespace WinFormsApp
 
         private void button_directory_Click(object sender, EventArgs e)
         {
+
+            string directoryName = "";
+
+            using (var openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Filter = "All Files (*.*)|*.*";
+                openFileDialog.CheckFileExists = false;
+                openFileDialog.CheckPathExists = true;
+                openFileDialog.FileName = "PICK A DIRECTORY TO EXPORT FILES TO";
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    directoryName = Path.GetDirectoryName(openFileDialog.FileName);
+                }
+            }
+
+            if (String.IsNullOrEmpty(directoryName))
+            {
+                Directory = null;
+            }
+            else
+            {
+                Directory = directoryName;
+            }
+
+
+            /*
             var folderDialog = new FolderBrowserDialog
             {
                 Description = "选择待转换文件夹",
                 ShowNewFolderButton = false // 不允许在该对话框中新建文件夹
             }; // 打开文件夹对话框
             Directory = (folderDialog.ShowDialog() == DialogResult.OK) ? folderDialog.SelectedPath : null;
+            */
+
             ShowDirectory(Directory);
             if (checkBox_sameOutput.Checked) // 选择了输出到相同文件夹
             {
@@ -116,11 +144,39 @@ namespace WinFormsApp
         private void button_output_Click(object sender, EventArgs e)
         {
             OriginalOutput = Output;
+
+            string directoryName = "";
+
+            using (var openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Filter = "All Files (*.*)|*.*";
+                openFileDialog.CheckFileExists = false;
+                openFileDialog.CheckPathExists = true;
+                openFileDialog.FileName = "PICK A DIRECTORY TO EXPORT FILES TO";
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    directoryName = Path.GetDirectoryName(openFileDialog.FileName);
+                }
+            }
+
+            if (String.IsNullOrEmpty(directoryName))
+            {
+                Output = null;
+            }
+            else
+            {
+                Output = directoryName;
+            }
+
+
+            /*
             var folderDialog = new FolderBrowserDialog
             {
                 Description = "选择输出文件夹"
             }; // 打开文件夹对话框
             Output = (folderDialog.ShowDialog() == DialogResult.OK) ? folderDialog.SelectedPath : null;
+            */
+
             ShowOutput(Output);
             if (OriginalOutput != Output) // 更改了输出文件夹
             {
@@ -134,11 +190,11 @@ namespace WinFormsApp
             {
                 if (Files != null) // 已选取转换文件
                 {
-                    service.DownLoadFiles(service.TranscodeFiles(service.UploadFiles(Files), checkBox_BOM.Checked, checkBox_override.Checked), Output);
+                    service.DownLoadFiles(service.TranscodeFiles(service.UploadFiles(Files), checkBox_BOM.Checked, checkBox_override.Checked, comboBox1.Text, comboBox2.Text, textBox1.Text, checkBox_inpack.Checked), Output);
                 }
                 else if (Directory != null) // 已选取转换文件夹
                 {
-                    service.DownLoadFiles(service.TranscodeFiles(service.UploadFolder(Directory, checkBox_recur.Checked), checkBox_BOM.Checked, checkBox_override.Checked), Output);
+                    service.DownLoadFiles(service.TranscodeFiles(service.UploadFolder(Directory, checkBox_recur.Checked), checkBox_BOM.Checked, checkBox_override.Checked, comboBox1.Text, comboBox2.Text, textBox1.Text, checkBox_inpack.Checked), Output);
                 }
                 else // 二者均未选择
                 {
@@ -210,6 +266,25 @@ namespace WinFormsApp
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
             service.ClearFiles();
+        }
+
+        private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void checkBox_inpack_CheckedChanged(object sender, EventArgs e)
+        {
+        }
+
+        private void checkBox_BOM_CheckedChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

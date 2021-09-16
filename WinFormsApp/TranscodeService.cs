@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace WinFormsApp
 {
@@ -34,6 +35,23 @@ namespace WinFormsApp
                 var fileName = Path.GetFileName(filePath); // 获取文件名
                 var uploadedFilePath = Path.Combine(pathToUploadedFiles, fileName); // 指定上传的文件在服务中保存的路径
                 FileManager.ByteStreamToFile(uploadedFilePath, fileBytes); // 在服务的指定路径创建相同的文件
+
+
+
+                var suffix = "_meat"; // 指定目标文件名中的后缀，与是否包含 BOM 有关
+                var extension = Path.GetExtension(filePath); // 获取原文件的扩展名
+                var fileName1 = Path.GetFileNameWithoutExtension(filePath); // 获取原文件的文件名（不包含扩展名）
+                var DirName = Path.GetDirectoryName(filePath); // 获取原文件的文件名（不包含扩展名）
+                fileName1 += suffix; // 向目标文件名中添加后缀
+                fileName1 += extension; // 向目标文件名补齐扩展名
+                var filePath1 = Path.Combine(DirName, fileName1); // 指定转换后的文件在服务中保存的路径
+                var uploadedFilePath1 = Path.Combine(pathToUploadedFiles, fileName1); // 指定转换后的文件在服务中保存的路径
+                if (File.Exists(filePath1))
+                {
+                    var fileBytes1 = FileManager.FileToByteStream(filePath1); // 将文件读取为字节流
+                    FileManager.ByteStreamToFile(uploadedFilePath1, fileBytes1); // 在服务的指定路径创建相同的文件
+                }
+
                 return uploadedFilePath;
             }
             catch (ArgumentNullException) // 未选取文件
@@ -103,28 +121,48 @@ namespace WinFormsApp
         }
 
         /* 转换指定路径的文件，并返回转换后的文件保存在服务上的路径 */
-        public string[] TranscodeFiles(string[] filePaths, bool bomFlag, bool overrideFlag)
+        public string[] TranscodeFiles(string[] filePaths, bool bomFlag, bool overrideFlag, string s1, string s2, string format, bool checkBox_inpack)
         {
-            var convertedFilePaths = filePaths.Select(filePath => TranscodeFile(filePath, bomFlag, overrideFlag));
+            var convertedFilePaths = filePaths.Select(filePath => TranscodeFile(filePath, bomFlag, overrideFlag, s1,s2,format, checkBox_inpack));
             return convertedFilePaths.Any() ? convertedFilePaths.ToArray() : null; // 若至少有一个文件转换成功，返回转换后的文件保存在服务上的路径；否则返回空
         }
 
-        public string TranscodeFile(string filePath, bool bomFlag, bool overrideFlag)
+        public string TranscodeFile(string filePath, bool bomFlag, bool overrideFlag, string s1, string s2, string format, bool checkBox_inpack)
         {
             try
             {
-                var fileName = Path.GetFileName(filePath); // 获取原文件的文件名（包含扩展名）
-                var originalFileBytes = FileManager.FileToByteStream(filePath); // 将文件读取为字节流
-                var targetFileBytes = Transcode.TranscodeByteStream(originalFileBytes, bomFlag); // 转换字节流
-                if (!overrideFlag) // 不覆盖原文件
+                var bytes = FileManager.FileToByteStream(filePath); // 将文件读取为字节流
+                                                                    // 产生该字节流的文件不是文本文件
+                if (!FileManager.IsTextFile(bytes))
                 {
-                    var suffix = " - [UTF-8" + (bomFlag ? " with BOM" : string.Empty) + "]"; // 指定目标文件名中的后缀，与是否包含 BOM 有关
+                    return null;
+                }
+
+                var fileName = Path.GetFileName(filePath); // 获取原文件的文件名（包含扩展名）
+                if (checkBox_inpack && fileName.Contains("_meat"))
+                {
+                    return null;
+                }
+                var targetFileBytes = Transcode.TranscodeByteStream(filePath, bomFlag, s1, s2, format, checkBox_inpack); // 转换字节流
+                /*if (!overrideFlag) // 不覆盖原文件
+                {
+                    var suffix = "-[" + s2 + "]"; // 指定目标文件名中的后缀，与是否包含 BOM 有关
                     var extension = Path.GetExtension(filePath); // 获取原文件的扩展名
                     fileName = Path.GetFileNameWithoutExtension(filePath); // 获取原文件的文件名（不包含扩展名）
                     fileName += suffix; // 向目标文件名中添加后缀
                     fileName += extension; // 向目标文件名补齐扩展名
-                }
+                }*/
                 var convertedFilePath = Path.Combine(pathToConvertedFiles, fileName); // 指定转换后的文件在服务中保存的路径
+                if (bomFlag)
+                {
+                    var suffix = "_meat"; // 指定目标文件名中的后缀，与是否包含 BOM 有关
+                    var extension = Path.GetExtension(filePath); // 获取原文件的扩展名
+                    fileName = Path.GetFileNameWithoutExtension(filePath); // 获取原文件的文件名（不包含扩展名）
+                    var DirName = Path.GetDirectoryName(filePath); // 获取原文件的文件名（不包含扩展名）
+                    fileName += suffix; // 向目标文件名中添加后缀
+                    fileName += extension; // 向目标文件名补齐扩展名
+                    convertedFilePath = Path.Combine(DirName, fileName); // 指定转换后的文件在服务中保存的路径
+                }
                 FileManager.ByteStreamToFile(convertedFilePath, targetFileBytes); // 在服务的指定路径创建目标文件
                 return convertedFilePath;
             }
@@ -170,7 +208,7 @@ namespace WinFormsApp
             }
             catch (ArgumentNullException) // 文件路径为空
             {
-                throw new ArgumentNullException("文件路径为空");
+                //throw new ArgumentNullException("文件路径为空");
             }
             catch (ArgumentException) // 文件路径无效
             {
